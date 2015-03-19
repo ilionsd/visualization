@@ -1,9 +1,11 @@
 package com.insign.common.function_graphics;
 
 import java.awt.*;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.function.Function;
+import java.util.zip.DeflaterOutputStream;
 
 /**
  * Created by ilion on 13.03.2015.
@@ -41,7 +43,7 @@ public abstract class AbstractPlot2D implements Plot2D {
 	@Override
 	public void clear() {
 		getGraphics().setColor(getBackgroundColor());
-		getGraphics().drawRect(0, 0, getImageWidth(), getImageHeight());
+		getGraphics().fillRect(0, 0, getImageWidth(), getImageHeight());
 	}
 
 	@Override
@@ -73,24 +75,98 @@ public abstract class AbstractPlot2D implements Plot2D {
 	public void drawPoint(double x, double y, Color color) {
 		getGraphics().setColor(color);
 		Point2D point = scale(x, y);
-		double radius = 2;
-		getGraphics().drawOval((int)(point.getX() - radius), (int)(point.getY() - radius),(int)(2 * radius), (int)(2 * radius));
+		double radius = 3.5;
+		getGraphics().fillOval((int)(point.getX() - radius), (int)(point.getY() - radius),(int)(2 * radius), (int)(2 * radius));
 	}
 
-	protected int getKnotsCount() {
+	@Override
+	public void drawPoints(Point2D[] points) {
+		drawPoints(points, getNextColor());
+	}
+
+	@Override
+	public void drawPoints(Point2D[] points, Color color) {
+		for (Point2D point : points)
+			drawPoint(point.getX(), point.getY(), color);
+	}
+
+	@Override
+	public void drawGrid(double dx, double dy) {
+		drawGrid(dx, dy, getNextColor());
+	}
+
+	@Override
+	public void drawGrid(double dx, double dy, Color color) {
+		double centerX, centerY;
+		if (getxMin() < 0 && getxMax() > 0)
+			centerX = 0;
+		else centerX = getxMin();
+		if (getyMin() < 0 && getyMax() > 0)
+			centerY = 0;
+		else centerY = getyMin();
+		getGraphics().setColor(color);
+		drawVerticalGridTo(centerX, dx);
+		drawVerticalGridTo(centerX, -dx);
+		drawHorizontalGridTo(centerY, dy);
+		drawHorizontalGridTo(centerY, -dy);
+		drawOrigin(centerX, centerY);
+	}
+
+	private void drawVerticalGridTo(double center, double direction) {
+		double nextLine = center + direction;
+		while (Double.compare(getxMin(), nextLine) <= 0 && Double.compare(nextLine, getxMax()) <= 0) {
+			int nextLineScaled = (int)scaleX(nextLine),
+					yMinScaled = (int)scaleY(getyMin()),
+					yMaxScaled = (int)scaleY(getyMax());
+			getGraphics().drawLine(nextLineScaled, yMinScaled, nextLineScaled, yMaxScaled);
+			String str = Double.toString(nextLine);
+			getGraphics().drawString(str, nextLineScaled, yMinScaled);
+			getGraphics().drawString(str, nextLineScaled, yMaxScaled);
+			nextLine+=direction;
+		}
+	}
+
+	private void drawHorizontalGridTo(double center, double direction) {
+		double nextLine = center + direction;
+		while (Double.compare(getyMin(), nextLine) <= 0 && Double.compare(nextLine, getyMax()) <= 0) {
+			int nextLineScaled = (int)scaleY(nextLine),
+					xMinScaled = (int)scaleX(getxMin()),
+					xMaxScaled = (int)scaleX(getxMax());
+			getGraphics().drawLine(xMinScaled, nextLineScaled, xMaxScaled, nextLineScaled);
+			String str = Double.toString(nextLine);
+			getGraphics().drawString(str, xMinScaled, nextLineScaled);
+			getGraphics().drawString(str, xMaxScaled, nextLineScaled);
+			nextLine+=direction;
+		}
+	}
+
+	private void drawOrigin(double centerX, double centerY) {
+		getGraphics().drawLine((int)scaleX(centerX), (int)scaleY(getyMin()), (int)scaleX(centerX), (int)scaleY(getyMax()));
+		getGraphics().drawLine((int)scaleX(getxMin()), (int)scaleY(centerY), (int)scaleX(getxMax()), (int)scaleY(centerY));
+	}
+
+	private int getKnotsCount() {
 		double interval = getxMax() - getxMin();
 		int knotsCount = Math.max(POINTS_PER_FUNCTION, (int)Math.ceil(interval / DRAW_FUNCTION_STEP));
 		return knotsCount;
 	}
 
-	protected Point2D scale(Point2D point) {
+	private double scaleX(double x) {
+		double displayX = (x - xMin) / xPerPoint;
+		return displayX;
+	}
+
+	private double scaleY(double y) {
+		double displayY = (yMax - y) / yPerPoint;
+		return displayY;
+	}
+
+	private Point2D scale(Point2D point) {
 		return scale(point.getX(), point.getY());
 	}
 
-	protected Point2D scale(double x, double y) {
-		float displayX = (float)((x - xMin) / xPerPoint);
-		float displayY = (float)((yMax - y) / yPerPoint);
-		return new Point2D.Double(displayX, displayY);
+	private Point2D scale(double x, double y) {
+		return new Point2D.Double(scaleX(x), scaleY(y));
 	}
 
 	protected abstract Color getNextColor();

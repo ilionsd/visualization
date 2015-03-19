@@ -10,6 +10,8 @@ import java.util.ListIterator;
  * Created by ilion on 13.03.2015.
  */
 public class Plot2DImpl extends AbstractPlot2D{
+	public static final Color[] COLORS_DEFAULT_ROTATION = new Color[] {Color.BLACK};
+
 	private BufferedImage image;
 	private Graphics2D graphics;
 
@@ -21,8 +23,8 @@ public class Plot2DImpl extends AbstractPlot2D{
 	private void init(){
 		image = new BufferedImage(getImageWidth(), getImageHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
 		graphics = image.createGraphics();
-		colors = new ArrayList<Color>();
-		colors.add(Color.BLACK);
+		setColorsRotation(COLORS_DEFAULT_ROTATION);
+		clear();
 	}
 
 	public Plot2DImpl(int width, int height, double xMin, double yMin, double xMax, double yMax) {
