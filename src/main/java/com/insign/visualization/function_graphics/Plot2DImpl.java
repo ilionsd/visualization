@@ -1,4 +1,4 @@
-package com.insign.common.function_graphics;
+package com.insign.visualization.function_graphics;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

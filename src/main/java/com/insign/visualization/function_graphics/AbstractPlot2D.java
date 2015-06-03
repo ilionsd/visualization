@@ -1,11 +1,8 @@
-package com.insign.common.function_graphics;
+package com.insign.visualization.function_graphics;
 
 import java.awt.*;
-import java.awt.geom.Arc2D;
-import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.function.Function;
-import java.util.zip.DeflaterOutputStream;
 
 /**
  * Created by ilion on 13.03.2015.
